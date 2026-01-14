@@ -4,15 +4,18 @@ ALL SCAN is a professional Nmap-based network scanning tool for **authorized sec
 
 ---
 
-## Features
-- Single IP & IP range scanning
-- Service and version detection
-- Default NSE scripts
-- OS detection
-- Open ports summary
-- Insecure service detection
-- Automatic report generation
+### Scan Behavior
 
+ALL SCAN uses **Nmap as its backend**, but unlike manual Nmap usage, it does **not require separate scan flags** such as `-sS`, `-sV`, `-sC`, or `-O`.
+
+ALL SCAN performs a **single, unified scan** that automatically includes:
+- Host discovery handling
+- Port scanning
+- Service and version detection
+- Default NSE script scanning
+- OS detection
+
+This design simplifies scanning by providing **one complete scan in a single execution**, without requiring users to remember or manage individual Nmap options.
 
 ---
 
@@ -24,4 +27,5 @@ cd allscan
 sudo bash install.sh
 
 allscan
+
 
