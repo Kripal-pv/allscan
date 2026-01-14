@@ -10,29 +10,29 @@ import sys
 import subprocess
 import time
 import shutil
+import os
 
-# ========== COLORS ==========
+# ================= COLORS =================
 RED = "\033[91m"
+YELLOW = "\033[93m"
 GREEN = "\033[92m"
 CYAN = "\033[96m"
 RESET = "\033[0m"
 
-# ========== CHECK NMAP (CORRECT WAY) ==========
+# ================= CHECK NMAP =================
 if shutil.which("nmap") is None:
     print(f"{RED}[-] Nmap is not installed. Please install Nmap first.{RESET}")
     sys.exit(1)
 
-# ========== BANNER ==========
+# ================= BANNER =================
 print(f"""{CYAN}
 ========================================
- 
-ALL SCAN
-Network Scanner
- 
+ ALL SCAN
+ Network Scanner (Kali Linux)
 ========================================
 {RESET}""")
 
-# ========== INPUT ==========
+# ================= INPUT =================
 target = input("Enter Target IP / Range: ").strip()
 
 patterns = [
@@ -45,7 +45,7 @@ if not any(re.match(p, target) for p in patterns):
     print(f"{RED}[-] Invalid IP or range format{RESET}")
     sys.exit(1)
 
-# ========== SCAN ==========
+# ================= SCAN =================
 print(f"\n{CYAN}[+] Start scanning...{RESET}\n")
 start_time = time.time()
 
@@ -59,33 +59,81 @@ proc = subprocess.run(
 
 end_time = time.time()
 
-# ========== CLEAN OUTPUT ==========
+# ================= PARSE OUTPUT =================
 clean_lines = []
+open_ports = []
+services = set()
+findings = []
+
+RISK_PORTS = {
+    21: "FTP (clear-text authentication)",
+    23: "Telnet (unencrypted)",
+    445: "SMB exposed",
+    3389: "RDP exposed",
+    3306: "MySQL exposed",
+    5900: "VNC exposed"
+}
+
 for line in proc.stdout.splitlines():
-    if line.startswith("Starting Nmap"):
+    if line.startswith(("Starting Nmap", "OS and Service detection performed", "Nmap done:")):
         continue
-    if line.startswith("OS and Service detection performed"):
-        continue
-    if line.startswith("Nmap done:"):
-        continue
+
     clean_lines.append(line)
+
+    if "/tcp" in line and "open" in line:
+        parts = line.split()
+        try:
+            port = int(parts[0].split("/")[0])
+            service = parts[2]
+            open_ports.append(port)
+            services.add(service)
+
+            if port in RISK_PORTS:
+                findings.append(f"Port {port}: {RISK_PORTS[port]}")
+        except:
+            pass
 
 output = "\n".join(clean_lines)
 print(output)
 
-# ========== SUMMARY ==========
+# ================= SUMMARY =================
 print(f"""{CYAN}
-------------- SUMMARY -------------
-Target    : {target}
-Scan Time : {round(end_time - start_time, 2)} seconds
-----------------------------------
+------------- SCAN SUMMARY -------------
+Target        : {target}
+Open Ports    : {len(open_ports)}
+Services      : {", ".join(sorted(services)) if services else "None"}
+Scan Duration : {round(end_time - start_time, 2)} seconds
+---------------------------------------
 {RESET}""")
 
-# ========== SAVE ==========
-save = input("Save output? (y/n): ").lower()
+# ================= FINDINGS =================
+if findings:
+    print(f"{RED}[!] Potentially Insecure Services Detected:{RESET}")
+    for f in findings:
+        print(f"  - {f}")
+else:
+    print(f"{GREEN}[+] No obvious insecure services detected{RESET}")
+
+# ================= SAVE REPORT =================
+save = input("\nSave output? (y/n): ").lower()
+
 if save == "y":
-    name = input("File name (without extension): ").strip()
+    name = input("Report file name (without extension): ").strip()
+
+    print("\nWhere do you want to save the report?")
+    print("1) Current directory")
+    print("2) ~/allscan-reports")
+    choice = input("Select (1/2): ").strip()
+
     if name:
-        with open(name + ".txt", "w") as f:
+        if choice == "1":
+            path = os.path.join(os.getcwd(), name + ".txt")
+        else:
+            report_dir = os.path.expanduser("~/allscan-reports")
+            os.makedirs(report_dir, exist_ok=True)
+            path = os.path.join(report_dir, name + ".txt")
+
+        with open(path, "w") as f:
             f.write(output)
-        print(f"{GREEN}[+] Saved as {name}.txt{RESET}")
+
+        print(f"{GREEN}[+] Report saved to {path}{RESET}")
