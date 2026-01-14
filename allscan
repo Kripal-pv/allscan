@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+ALL SCAN
+Network Scanner (Kali Linux)
+Backend: Nmap
+"""
+
+import re
+import sys
+import subprocess
+import time
+import shutil
+
+# ========== COLORS ==========
+RED = "\033[91m"
+GREEN = "\033[92m"
+CYAN = "\033[96m"
+RESET = "\033[0m"
+
+# ========== CHECK NMAP (CORRECT WAY) ==========
+if shutil.which("nmap") is None:
+    print(f"{RED}[-] Nmap is not installed. Please install Nmap first.{RESET}")
+    sys.exit(1)
+
+# ========== BANNER ==========
+print(f"""{CYAN}
+========================================
+ ALL SCAN
+ Network Scanner
+ Platform : Kali Linux
+========================================
+{RESET}""")
+
+# ========== INPUT ==========
+target = input("Enter Target IP / Range: ").strip()
+
+patterns = [
+    r"^(?:\d{1,3}\.){3}\d{1,3}$",
+    r"^(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}$",
+    r"^(?:\d{1,3}\.){3}\d{1,3}-\d{1,3}$"
+]
+
+if not any(re.match(p, target) for p in patterns):
+    print(f"{RED}[-] Invalid IP or range format{RESET}")
+    sys.exit(1)
+
+# ========== SCAN ==========
+print(f"\n{CYAN}[+] Start scanning...{RESET}\n")
+start_time = time.time()
+
+cmd = ["nmap", "-sS", "-sV", "-sC", "-O", "-Pn", target]
+proc = subprocess.run(
+    cmd,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True
+)
+
+end_time = time.time()
+
+# ========== CLEAN OUTPUT ==========
+clean_lines = []
+for line in proc.stdout.splitlines():
+    if line.startswith("Starting Nmap"):
+        continue
+    if line.startswith("OS and Service detection performed"):
+        continue
+    if line.startswith("Nmap done:"):
+        continue
+    clean_lines.append(line)
+
+output = "\n".join(clean_lines)
+print(output)
+
+# ========== SUMMARY ==========
+print(f"""{CYAN}
+------------- SUMMARY -------------
+Target    : {target}
+Scan Time : {round(end_time - start_time, 2)} seconds
+----------------------------------
+{RESET}""")
+
+# ========== SAVE ==========
+save = input("Save output? (y/n): ").lower()
+if save == "y":
+    name = input("File name (without extension): ").strip()
+    if name:
+        with open(name + ".txt", "w") as f:
+            f.write(output)
+        print(f"{GREEN}[+] Saved as {name}.txt{RESET}")
