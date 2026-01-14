@@ -25,9 +25,10 @@ if shutil.which("nmap") is None:
 # ========== BANNER ==========
 print(f"""{CYAN}
 ========================================
- ALL SCAN
- Network Scanner
- Platform : Kali Linux
+ 
+ALL SCAN
+Network Scanner
+ 
 ========================================
 {RESET}""")
 
