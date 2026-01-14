@@ -20,5 +20,7 @@ ALL SCAN is a professional Nmap-based network scanning tool for **authorized sec
 
 ```bash
 git clone https://github.com/Kripal-pv/all-scan.git
-cd all-scan
+cd allscan
 sudo bash install.sh
+
+allscan
