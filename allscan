@@ -151,7 +151,7 @@ if save == "y":
         if choice == "1":
             path = os.path.join(os.getcwd(), name + ".txt")
         else:
-            report_dir = os.path.expanduser("~/allscan-reports")
+            report_dir = os.path.expanduser("/home/kali/allscan-report")
             os.makedirs(report_dir, exist_ok=True)
             path = os.path.join(report_dir, name + ".txt")
 
