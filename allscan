@@ -19,19 +19,21 @@ GREEN = "\033[92m"
 CYAN = "\033[96m"
 RESET = "\033[0m"
 
+# ================= CONSTANTS =================
+REPORT_DIR = "/home/kali/allsacnreport"
+
 # ================= CHECK NMAP =================
 if shutil.which("nmap") is None:
     print(f"{RED}[-] Nmap is not installed. Please install Nmap first.{RESET}")
     sys.exit(1)
 
 # ================= BANNER =================
-banner = f"""
+banner = """
 ========================================
  ALL SCAN
  Network Scanner (Kali Linux)
 ========================================
 """
-
 print(CYAN + banner + RESET)
 
 # ================= INPUT =================
@@ -136,26 +138,31 @@ if findings:
 else:
     print(GREEN + findings_text + RESET)
 
-# ================= SAVE REPORT =================
+# ================= SAVE REPORT (AUTO) =================
 save = input("\nSave full report? (y/n): ").lower()
 
 if save == "y":
     name = input("Report file name (without extension): ").strip()
 
-    print("\nWhere do you want to save the report?")
-    print("1) Current directory")
-    print("2) ~/allscan-reports")
-    choice = input("Select (1/2): ").strip()
+    if not name:
+        print(f"{YELLOW}[-] Invalid file name{RESET}")
+        sys.exit(0)
 
-    if name:
-        if choice == "1":
-            path = os.path.join(os.getcwd(), name + ".txt")
-        else:
-            report_dir = os.path.expanduser("/home/kali/allscan-report")
-            os.makedirs(report_dir, exist_ok=True)
-            path = os.path.join(report_dir, name + ".txt")
+    # Ensure directory exists
+    os.makedirs(REPORT_DIR, exist_ok=True)
 
-        with open(path, "w") as f:
-            f.write(full_report)
+    # Check write permission
+    if not os.access(REPORT_DIR, os.W_OK):
+        print(f"{RED}[-] Report directory is not writable:{RESET}")
+        print(f"{RED}    {REPORT_DIR}{RESET}")
+        print("Fix by running:")
+        print("sudo chown -R kali:kali /home/kali/allsacnreport")
+        sys.exit(1)
 
-        print(f"{GREEN}[+] Full report saved to {path}{RESET}")
+    path = os.path.join(REPORT_DIR, name + ".txt")
+
+    with open(path, "w") as f:
+        f.write(full_report)
+
+    print(f"{GREEN}[+] Report saved successfully{RESET}")
+    print(f"{CYAN}[+] Location: {path}{RESET}")

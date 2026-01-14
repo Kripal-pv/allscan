@@ -1,5 +1,5 @@
 #!/bin/bash
-# ALL SCAN Installer
+# ALL SCAN Installer (Final & Stable)
 
 echo "[+] Installing ALL SCAN..."
 
@@ -20,19 +20,24 @@ fi
 sed -i 's/\r$//' allscan
 sed -i 's/\r$//' install.sh
 
-# Permissions
+# Set permissions
 chmod 755 allscan
 
-# Remove old version
+# Install binary
 rm -f /usr/local/bin/allscan
-
-# Install
 cp allscan /usr/local/bin/allscan
+
+# Create report directory safely
+REPORT_DIR="/home/kali/allsacnreport"
+mkdir -p "$REPORT_DIR"
+chown -R kali:kali "$REPORT_DIR"
+chmod 755 "$REPORT_DIR"
 
 # Verify
 if command -v allscan >/dev/null 2>&1; then
   echo "[+] Installation successful!"
-  echo "[+] Run using: allscan"
+  echo "[+] Reports will be saved to: $REPORT_DIR"
+  echo "[+] Run the tool using: allscan"
 else
   echo "[-] Installation failed"
   exit 1
