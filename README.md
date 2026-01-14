@@ -12,7 +12,7 @@ ALL SCAN is a professional Nmap-based network scanning tool for **authorized sec
 - Open ports summary
 - Insecure service detection
 - Automatic report generation
-- No sudo required to run
+
 
 ---
 
@@ -24,3 +24,4 @@ cd allscan
 sudo bash install.sh
 
 allscan
+
